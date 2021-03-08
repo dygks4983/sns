@@ -1,14 +1,17 @@
 import React from "react";
 import { Input, Menu } from "antd";
 import "./AppLayout.scss";
-import StoryList from "./StoryList"
-import SuggestionList from "./SuggestionList"
+import StoryList from "./StoryList";
+import SuggestionList from "./SuggestionList";
+import LogoImage from "assets/insta_logo.png";
 
 export default function AppLayout({ children }) {
     return (
         <div className="app">
             <div className="header">
-                <h1 className="page-title">Instagram</h1>
+                <h1 className="page-title">
+                    <img src={LogoImage} alt="logo" width="130em"/>
+                </h1>
                 <div className="serch">
                     <Input.Search />
                 </div>
@@ -25,7 +28,9 @@ export default function AppLayout({ children }) {
                 <StoryList style={{ marginBottom: "1rem" }}/>
                 <SuggestionList />
             </div>
-            <div className="footer">Footer</div>
+            <div className="footer">
+                &copy; 2021. Kim YoHan.
+            </div>
         </div>
     );
 }
