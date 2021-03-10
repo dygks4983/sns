@@ -1,67 +1,92 @@
-import React, { useEffect, useState } from "react";
-import { Alert } from "antd";
-import Axios from "axios";
+import React, { useState } from "react";
 import { useHistory } from "react-router";
+import { SmileOutlined, FrownOutlined } from "@ant-design/icons";
+import { Form, Input, Button, notification } from 'antd';
+import axios from "axios";
 
 export default function Signup() {
     const history = useHistory();
+    const [fieldErrors, setFieldErrors] = useState({})
 
-    const [inputs, setInputs] = useState({ username: "", password: ""});
-    const [loading, setLoading] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [formDisabled, setFromDisabled] = useState(true);
+    const onFinish = values => {
+        async function fn() {
+            const { username, password } = values;
+            setFieldErrors({});
+            const data = { username, password };
+            try {
+                await axios.post("http://localhost:8000/accounts/signup/", data);
 
-    const onSubmit = e => {
-        e.preventDefault();
-
-        setLoading(true);
-        setErrors({});
-
-        Axios.post("http://localhost:8000/accounts/signup/", inputs)
-            .then(response => {
-                console.log("reponse :", response);
-                history.push("/accounts/login");
-            })
-            .catch(error => {
-                console.log("error :", error);
+                //success notification 
+                notification.open({
+                    message: "회원가입 성공",
+                    description: "로그인 페이지로 이동합니다.",
+                    icon: <SmileOutlined style={{ color: "#108ee9" }} />
+                })
+                history.push("/accounts/login")
+            } catch (error) {
+                console.log(error)
                 if (error.response) {
-                    setErrors({
-                        username: (error.response.data.username || []).join(" "),
-                        password: (error.response.data.password || []).join(" ")
-                    });
+                    notification.open({
+                        message: "회원가입 실패",
+                        description: "로그인 페이지로 이동합니다.",
+                        icon: <FrownOutlined style={{ color: "#ff3333" }} />
+                    })
+
+                    const { data: fieldsErrorMessages } = error.response;
+                    // fieldsErrorMessages =>  { username: "m1 m2", password: []}
+                    setFieldErrors(
+                        Object.entries(fieldsErrorMessages).reduce((acc, [fieldName, errors]) => {
+                            acc[fieldName] = {
+                                ValidityState: "error",
+                                help: errors.join(" ")
+                            };
+                            return acc;
+                        }, {})
+                    )
                 }
-                
-            })
-            .finally(() => {
-                setLoading(false);
-            })
+            }
+        }
+        fn();
     };
 
-    useEffect(() => {
-        const isenabled = Object.values(inputs).every( s => s.length > 0)
-        setFromDisabled(!isenabled); 
-    }, [inputs]) 
+    return (
+        <Form
+            {...layout}
+            onFinish={onFinish}
+        // onFinishFailed={onFinishFailed}
+        >
+            <Form.Item
+                label="Username"
+                name="username"
+                rules={[{ required: true, message: 'Please input your username!' }]}
+                hasFeedback
+                {...fieldErrors.username}
+            >
+                <Input />
+            </Form.Item>
 
-    const onChange = e => {
-        const { name, value } = e.target;
-        setInputs(prev => ({
-            ...prev, 
-            [name]: value
-        }));
-    };
+            <Form.Item
+                label="Password"
+                name="password"
+                rules={[{ required: true, message: 'Please input your password!' }]}
+                {...fieldErrors.password}
+            >
+                <Input.Password />
+            </Form.Item>
 
-    return <div>
-        <form onSubmit={onSubmit}>
-            <div>
-                <input type="text" name="username" onChange={onChange}/>
-                {errors.username && <Alert type="error" message={errors.username}/>}
-            </div>
-            <div>
-                <input type="password" name="password" onChange={onChange}/>
-                {errors.password && <Alert type="error" message={errors.password}/>}
-            </div>
-            
-            <input type="submit" value="회원가입" disabled={loading || formDisabled} />
-        </form>
-    </div>
+            <Form.Item {...tailLayout}>
+                <Button type="primary" htmlType="submit">
+                    Submit
+                </Button>
+            </Form.Item>
+        </Form>
+    );
 }
+
+const layout = {
+    labelCol: { span: 8 },
+    wrapperCol: { span: 16 },
+};
+const tailLayout = {
+    wrapperCol: { offset: 8, span: 16 },
+};
