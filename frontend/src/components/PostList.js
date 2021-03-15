@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
 import Axios from "axios";
 import Post from "./Post"
+import { useAppContext } from "store";
 
 const apiUrl = "http://localhost:8000/api/posts/"
 
 export default function PostList() {
+    const { store: { jwtToken }, dispatch } = useAppContext();
     const [postList, setPostList] = useState([]);
-    // 컴퍼넌트가 생성된 후 호출 -> 훅
+
+    // 컴퍼넌트가 생성된 후 호출 -> hook
     useEffect(() => {
         Axios.get(apiUrl)
             .then(response => {
@@ -23,7 +26,7 @@ export default function PostList() {
     return (
         <div>
             {postList.map(post => <Post post={post} key={post.id} />
-                )}
+            )}
         </div>
     )
 }

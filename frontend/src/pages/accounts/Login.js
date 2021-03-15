@@ -3,12 +3,14 @@ import { useHistory } from "react-router";
 import { SmileOutlined, FrownOutlined } from "@ant-design/icons";
 import { Form, Input, Button, notification, Card } from 'antd';
 import axios from "axios";
-import useLocalStorage from "utils/useLocalStorage"
+import { useAppContext } from "store";
+import { setToken } from "store";
 
 
 export default function Login() {
+    const { dispatch } = useAppContext();
     const history = useHistory();
-    const [jwtToken, setJwtToken] = useLocalStorage("jwtToken", "");
+
     const [fieldErrors, setFieldErrors] = useState({})
 
     const onFinish = values => {
@@ -21,7 +23,7 @@ export default function Login() {
                 const response = await axios.post("http://localhost:8000/accounts/token/", data);
                 const { data: { token: jwtToken } } = response;
 
-                setJwtToken(jwtToken)
+                dispatch(setToken(jwtToken));
 
                 notification.open({
                     message: "로그인 성공",
